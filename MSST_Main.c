@@ -26,8 +26,8 @@ void main(void) {
 	EDIS;
 
     MSSTGpioConfig();
+    GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;  // Not prepared yet.
     CPU_LED_BIT = 0;
-    GpioDataRegs.GPCCLEAR.bit.GPIO72 = 1;
     DINT;
     InitPieCtrl();
     InterruptInit();

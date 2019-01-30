@@ -157,6 +157,9 @@ void protection();
 
 Uint16 led_count = 0;
 
+#define FAULT_RELEASE   GpioDataRegs.GPASET.bit.GPIO18 = 1
+#define FAULT_TRIP      GpioDataRegs.GPACLEAR.bit.GPIO18 = 1
+
 #pragma CODE_SECTION(ControlLoop, ".TI.ramfunc");
 __interrupt void ControlLoop(void)
 {
@@ -267,6 +270,7 @@ void dab_ss()
     if(dab_ss_db <= 40)
     {
         Sec_En = 1;
+        FAULT_RELEASE;
         State = STATE_DAB_NORMAL;
     }
 }
@@ -289,5 +293,6 @@ void protection()
 {
     Pwm_DIS();
     Sec_En = 0;
+    FAULT_TRIP;
 }
 

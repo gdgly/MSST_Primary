@@ -41,9 +41,11 @@ void MSSTGpioConfig(void)
     GpioCtrlRegs.GPAGMUX2.bit.GPIO16 = 1;   // PWM9A -- Sync_output
     GpioCtrlRegs.GPAMUX2.bit.GPIO16 = 1;
 
+    GpioCtrlRegs.GPADIR.bit.GPIO18 = 1;  // Fault feedback signal
 
-    GpioCtrlRegs.GPAGMUX2.bit.GPIO18 = 0;   // SCITXDB
-    GpioCtrlRegs.GPAMUX2.bit.GPIO18 = 2;
+//
+//    GpioCtrlRegs.GPAGMUX2.bit.GPIO18 = 0;   // SCITXDB
+//    GpioCtrlRegs.GPAMUX2.bit.GPIO18 = 2;
     GpioCtrlRegs.GPAGMUX2.bit.GPIO19 = 0;   // SCIRXDB
     GpioCtrlRegs.GPAMUX2.bit.GPIO19 = 2;
 
