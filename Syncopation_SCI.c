@@ -148,7 +148,7 @@ void SCI_UpdatePacketFloat(uint16_t index, float data)
 //////////////////////////////////////////////////////////////////////////
 
 #pragma CODE_SECTION(SCI_SerialPortReceiveISR, ".TI.ramfunc");
-interrupt void SCI_SerialPortReceiveISR(void)
+__interrupt void SCI_SerialPortReceiveISR(void)
 {
     if(sci_ch->SCIFFRX.bit.RXFFOVF)
     {
@@ -189,26 +189,26 @@ interrupt void SCI_SerialPortReceiveISR(void)
 
 
     switch(cmd) {
-    case 'a':       GpioDataRegs.GPDTOGGLE.bit.GPIO110 = 1;          break;
+//    case 'a':       GpioDataRegs.GPDTOGGLE.bit.GPIO110 = 1;          break;
 //    case PWM_EN:        Pwm_EN();           break;
-    case REC_DIS:       Rectifier_Stop();   break;
-    case REC_EN:        Rectifier_Start();  break;
-    case LOGGING_LENGTH:    Logging_length(arg_1);      break;
-    case I_LOOP_PR:     current_loop_pr(arg_2, arg_3);  break;
-    case V_SOGI_K_P:    v_sogi_k_p(arg_2, arg_3);       break;
-    case V_LOOP_PI:     v_loop_pi(arg_2, arg_3);        break;
-    case DAB_PRI_DIS:   DabPri_DIS();       break;
-    case DAB_PRI_EN:    DabPri_EN();        break;
-    case DAB_FREQ_INC:  DabFreq_INC();      break;
-    case DAB_FREQ_DEC:  DabFreq_DEC();      break;
+//    case REC_DIS:       Rectifier_Stop();   break;
+//    case REC_EN:        Rectifier_Start();  break;
+//    case LOGGING_LENGTH:    Logging_length(arg_1);      break;
+//    case I_LOOP_PR:     current_loop_pr(arg_2, arg_3);  break;
+//    case V_SOGI_K_P:    v_sogi_k_p(arg_2, arg_3);       break;
+//    case V_LOOP_PI:     v_loop_pi(arg_2, arg_3);        break;
+//    case DAB_PRI_DIS:   DabPri_DIS();       break;
+//    case DAB_PRI_EN:    DabPri_EN();        break;
+//    case DAB_FREQ_INC:  DabFreq_INC();      break;
+//    case DAB_FREQ_DEC:  DabFreq_DEC();      break;
 //    case DAB_FREQ_SET:  DabFreq_SET(arg_2); break;
-    case DAB_PHS_INC:   DabPhs_INC();       break;
-    case DAB_PHS_DEC:   DabPhs_DEC();       break;
-    case DAB_PHS_SET:   DabPhs_SET(arg_1);  break;
-    case DAB_PI:        DabPI(arg_2,arg_3); break;
-    case DAB_IREF:      DabIref(arg_2);     break;
-    case DAB_CTRL_EN:   DabCtrlEn();        break;
-    case DAB_CTRL_DIS:  DabCtrlDis();       break;
+//    case DAB_PHS_INC:   DabPhs_INC();       break;
+//    case DAB_PHS_DEC:   DabPhs_DEC();       break;
+//    case DAB_PHS_SET:   DabPhs_SET(arg_1);  break;
+//    case DAB_PI:        DabPI(arg_2,arg_3); break;
+//    case DAB_IREF:      DabIref(arg_2);     break;
+//    case DAB_CTRL_EN:   DabCtrlEn();        break;
+//    case DAB_CTRL_DIS:  DabCtrlDis();       break;
 //    case LOGGING_TRIG:  DataLog_state = 1;  break;
     default: break;
     }

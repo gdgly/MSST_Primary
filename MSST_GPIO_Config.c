@@ -80,7 +80,8 @@ void MSSTGpioConfig(void)
     GpioCtrlRegs.GPCDIR.bit.GPIO70 = 1;     // CPU_LED
 //    GpioCtrlRegs.GPBDIR.bit.GPIO41 = 1;     // CPU_LED
 
-    GpioCtrlRegs.GPCPUD.bit.GPIO72 = 1;     // Unused pin
+    GpioCtrlRegs.GPCDIR.bit.GPIO72 = 1;     // CPLD_RST || Fault_out
+
     GpioCtrlRegs.GPCPUD.bit.GPIO73 = 1;     // Unused pin
     GpioCtrlRegs.GPCPUD.bit.GPIO78 = 1;     // Unused pin
     GpioCtrlRegs.GPCPUD.bit.GPIO84 = 1;     // Unused pin

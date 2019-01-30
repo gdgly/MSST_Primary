@@ -27,7 +27,7 @@ void main(void) {
 
     MSSTGpioConfig();
     CPU_LED_BIT = 0;
-
+    GpioDataRegs.GPCCLEAR.bit.GPIO72 = 1;
     DINT;
     InitPieCtrl();
     InterruptInit();
@@ -37,49 +37,25 @@ void main(void) {
     PwmInit();
     Pwm_DIS();
 
-    DabPri_EN();
-
     CpuTimerInit();
     PieCtrlRegs.PIECTRL.bit.ENPIE = 1;  // Enable the PIE block
     IER = M_INT1 | M_INT9;
 
     EINT;
+
 	deadloop();
 }
 
-//extern float omega_h1;
-extern float V_dc_filtered;
-//extern float V_ac_amp;
-extern float Iac_amp;
-//extern float V_dc_ref;
-//extern float I_react;
-
-extern float Vac_theta;
-extern float Vac;
-
-extern Uint16 dab_prd;
-extern int16 dab_phs;
-extern Uint16 dab_state;
-
-extern Uint16 V_DC;
-extern Uint16 I_DC_1;
-extern Uint16 I_DC_2;
-
-extern Uint16 TEMP_1;
-extern Uint16 TEMP_2;
-extern Uint16 TEMP_3;
-extern Uint16 TEMP_4;
-
-extern Uint16 log_state;
-extern Uint16 log_index;
-extern Uint16 log_limit;
-
-extern float Dab_Idc;
-extern float Vdc;
-extern float Idc_filter_slow;
-extern float Vdc_filter_slow;
 
 Uint16 log_send_count = 0;
+
+extern float Iac;
+extern float Vdc;
+extern float Idc;
+extern Uint16 State;
+extern Uint16 Status;
+extern Uint16 Prd;
+extern Uint16 Duty;
 
 #pragma CODE_SECTION(deadloop, ".TI.ramfunc");
 void deadloop()
@@ -101,14 +77,14 @@ void deadloop()
 //            }
 //        }
 
-        SCI_UpdatePacketFloat(0, Dab_Idc);
+        SCI_UpdatePacketFloat(0, Idc);
         SCI_UpdatePacketFloat(1, Vdc);
-        SCI_UpdatePacketFloat(2, Idc_filter_slow);
-        SCI_UpdatePacketFloat(3, Vdc_filter_slow);
+        SCI_UpdatePacketFloat(2, Iac);
 
-        SCI_UpdatePacketInt16(0, dab_prd);
-        SCI_UpdatePacketInt16(1, V_DC);
-        SCI_UpdatePacketInt16(2, I_DC_2);
+        SCI_UpdatePacketInt16(0, State);
+        SCI_UpdatePacketInt16(1, Status);
+        SCI_UpdatePacketInt16(2, (int16_t)Prd);
+        SCI_UpdatePacketInt16(3, (int16_t)Duty);
         SCI_SendPacket();
 
         DELAY_US(4000);
@@ -128,7 +104,7 @@ void CpuTimerInit()
 }
 
 #pragma CODE_SECTION(CpuTimerIsr, ".TI.ramfunc");
-interrupt void CpuTimerIsr()
+__interrupt void CpuTimerIsr()
 {
     CPU_LED_TOGGLE = 1;
 

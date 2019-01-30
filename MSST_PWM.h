@@ -16,15 +16,10 @@ extern void Pwm_DIS();
 extern void Rectifier_EN();
 extern void Rectifier_DIS();
 extern void RectDuty_SET(float duty);
+extern void RectCmp_SET(Uint16 cmp);
 
 extern void DabPri_EN();
 extern void DabPri_DIS();
-extern void Dab_UpdateRegister();
-
-extern void DabFreq_INC();
-extern void DabFreq_DEC();
-extern void DabPhs_INC();
-extern void DabPhs_DEC();
-extern void DabPhs_SET(int16 arg);
+extern void Dab_Pri_Update();
 
 #endif /* MSST_PWM_H_ */

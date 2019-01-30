@@ -11,35 +11,6 @@
 #include "Syncopation_SCI.h"
 #include "Syncopation_Data.h"
 
-Uint16 i_dc_1_adc;
-float I_dc_1;
-
-Uint32 led_count=0;
-
-void Adc_A_Init();
-void Adc_B_Init();
-void DacInit();
-void ControlLoop();
-
-void ResetStateVariables();
-
-float current_loop(float Iac_ref, float Iac, float Freq);
-float voltage_sogi(float Vdc, float Omega);
-float voltage_loop(float Vdc_ref, float Vdc_filtered);
-void I_loop_PR(float arg_2,float arg_3);
-void I_offset(float arg_2);
-void DataLogWr();
-
-void V_dc_ref_set(float arg_2);
-void V_dc_ref_inc();
-void V_dc_ref_dec();
-void Q_ref_set(float arg_2);
-
-void dab_pri_off();
-void dab_pri_ss();
-void dab_pri_on();
-void dab_pri_fault();
-
 Uint16 V_DC;
 Uint16 I_DC_1;
 Uint16 I_DC_2;
@@ -52,35 +23,19 @@ Uint16 TEMP_2;
 Uint16 TEMP_3;
 Uint16 TEMP_4;
 
+void ControlLoop(void);
+void Adc_A_Init();
+void Adc_B_Init();
 
-
-float V_dc_ref = 300;
-float V_ac_amp = 0;
-
-Uint16 dab_pri_state = 0;
-Uint16 dab_duty = 10;
-int16 pwm_counter = 0;
 
 void AdcInit()
 {
     Adc_A_Init();
     Adc_B_Init();
-//    DacInit();
 
     PieCtrlRegs.PIEIER1.bit.INTx2 = 1;  // ADC-B interrupt 1
     EALLOW;
     PieVectTable.ADCB1_INT = &ControlLoop;
-    EDIS;
-}
-
-void DacInit()
-{
-    EALLOW;
-    DacaRegs.DACCTL.bit.DACREFSEL = 1;
-    DacaRegs.DACOUTEN.bit.DACOUTEN = 1;
-
-    DacbRegs.DACCTL.bit.DACREFSEL = 1;
-    DacbRegs.DACOUTEN.bit.DACOUTEN = 1;
     EDIS;
 }
 
@@ -168,77 +123,42 @@ void Adc_B_Init()
     EDIS;
 }
 
-Uint16 prd = 0;
-Uint16 v_duty = 0;
-
-float Vac = 0;
+// Feedback signals
+Uint16 Prd = 0;
+Uint16 Duty = 0;
 float Iac = 0;
-float Vdc = 0;
-
-//float Vac_Offset = 894.115;
-
 float I_ac_offset = 50.9928255516;
+float Vdc = 0;
+float Idc = 0;
 
+// Controller status
+Uint16 Status = 0;
+Uint16 Sec_En = 0;
 
-float Vac_freq = 60;
-float Vac_theta = 0;
-float Vac_amp = 0;
-float Vdc_filter = 0;
+// Controller outputs
+float RectMi = 0;
 
-extern float MSST_PLL(float Vac, float *Freq, float *V_ac_amp);
-extern float voltage_sogi(float Vdc, float Freq);
-extern float RectifierControl(float Vac_theta, float freq, float Vac, float Iac, float Vdc, float Vdc_filter);
+// Controller state
+Uint16 State = 0;
 
-extern Uint16 rect_state;
-Uint16 dab_state = 0;
+#define STATE_INITIAL     0
+#define STATE_STAND_BY    1
+#define STATE_DAB_SS      2
+#define STATE_DAB_NORMAL  3
+#define STATE_RECT_NORMAL 4
+#define STATE_FAULT       5
 
-extern void Dab_Update();
+void pri_inital();
+void standby();
+void dab_ss();
+void dab_normal();
+void rect_normal();
+void protection();
 
-float Dab_Idc = 0;
-
-Uint16 log_state = 0;
-Uint16 log_index = 0;
-Uint16 log_limit = 400;
-Uint16 log_extend = 300;
-Uint16 log_extend_count = 0;
-extern int16 dab_phs;
-
-float Dab_Idc_ref = 0;
-float Dab_Idc_buf = 0;
-float Dab_Idc_error = 0;
-float Dab_Idc_inte = 0;
-
-float Dab_kp = 3;
-float Dab_ki = 1;
-
-float Vdc_filter_slow = 0;
-float Idc_filter_slow = 0;
-
-extern Uint16 dab_prd;
-
-void DabCtrlEn()
-{
-    dab_state = 1;
-}
-
-void DabCtrlDis()
-{
-    dab_state = 0;
-}
-
-void DabPI(float arg_2, float arg_3)
-{
-    Dab_kp = arg_2;
-    Dab_ki = arg_3;
-}
-
-void DabIref(float arg_2)
-{
-    Dab_Idc_buf = arg_2;
-}
+Uint16 led_count = 0;
 
 #pragma CODE_SECTION(ControlLoop, ".TI.ramfunc");
-interrupt void ControlLoop(void)
+__interrupt void ControlLoop(void)
 {
     V_DC = AdcbResultRegs.ADCRESULT1;
     I_DC_1 = AdcbResultRegs.ADCRESULT2;
@@ -251,152 +171,46 @@ interrupt void ControlLoop(void)
     TEMP_2 = AdcaResultRegs.ADCRESULT1;
     TEMP_3 = AdcaResultRegs.ADCRESULT2;
     TEMP_4 = AdcaResultRegs.ADCRESULT3;
-//
-//    prd = (ECap1Regs.CAP2 + ECap1Regs.CAP4) >> 1;
-//    v_duty = (ECap1Regs.CAP1 + ECap1Regs.CAP3) >> 1;
-//
-//    Vac = -0.49082395 * (v_duty+2) + 1009.033;
-//
-////    Vac = -0.4379076 * v_duty + Vac_Offset;
-//
-//    Iac = -0.0247676798 * I_AC_1 + I_ac_offset;
-//
+
+    Prd = (ECap1Regs.CAP2 + ECap1Regs.CAP4) >> 1;
+    Duty = (ECap1Regs.CAP1 + ECap1Regs.CAP3) >> 1;
+    Iac = -0.0247676798 * I_AC_1 + I_ac_offset;
     Vdc = 0.2965626611 * V_DC + 0.0219840284;
-//
-//
-    Dab_Idc = -0.0076936010 * I_DC_2 + 15.3691515548;
+    Idc = -0.0076936010 * I_DC_2 + 15.3691515548;
 
-    float sample_t = 5e-9 * dab_prd;
-    Vdc_filter_slow += (Vdc - Vdc_filter_slow) * sample_t * 5;
-    Idc_filter_slow += (Dab_Idc - Idc_filter_slow) * sample_t * 5;
+    if((State > 0) && ((Iac < -15)||(Iac > 15)))
+        Status |= (1 << 1);
 
-//    if((Dab_Idc < -15) || (Dab_Idc > 15))
-//    {
-//        dab_phs = 0;
-//        dab_state = 0;
-//    }
-//    else
-//    {
-//    if(dab_state == 1)
-//    {
-//        Dab_Idc_error = Dab_Idc_ref - Dab_Idc;
-//        Dab_Idc_inte += Dab_ki * Dab_Idc_error * sample_t * 50e3;
-//        dab_phs = -Dab_kp * (Dab_Idc_error + Dab_Idc_inte);
+    if((State > 0) && (Vdc > 900))
+        Status |= (1 << 2);
 
-//        Dab_Idc_error = Dab_Idc_ref - Dab_Idc;
-//        Dab_Idc_inte += Dab_ki * Dab_Idc_error;
-//        dab_phs = -Dab_kp * (Dab_Idc_error + Dab_Idc_inte);
-//        if(dab_phs > 500)
-//            dab_phs = 500;
-//        if(dab_phs < -500)
-//            dab_phs = -500;
-//    }
-//        else
-//            dab_phs = 0;
-//    }
+    if((State > 0) && ((Idc < -20)||(Idc > 20)))
+        Status |= (1 << 3);
 
+    if((State > 0) && (!((Duty > 50) && (Duty < 3950))))
+        Status |= (1 << 4);
 
+    if(Status)
+    {
+        Status |= 1;
+        State = STATE_FAULT;
+    }
 
+    switch(State)
+    {
+    case STATE_INITIAL: pri_inital();       break;
+    case STATE_STAND_BY: standby();         break;
+    case STATE_DAB_SS: dab_ss();            break;
+    case STATE_DAB_NORMAL: dab_normal();    break;
+    case STATE_RECT_NORMAL: rect_normal();  break;
+    case STATE_FAULT: protection();         break;
+    default: protection();                  break;
+    }
 
-
-//    if(log_state == 0)
-//    {
-//        DataLog_Logging(log_index,Dab_Idc,(float)Dab_Idc_ref,(float)dab_phs,(float)Dab_Idc_inte);
-//        log_index++;
-//        if(log_index>=log_limit)
-//            log_index = 0;
-//    }
-//
-//    if(log_state == 1)
-//    {
-//        DataLog_Logging(log_index,Dab_Idc,(float)Dab_Idc_ref,(float)dab_phs,(float)Dab_Idc_inte);
-//        log_index++;
-//        if(log_index>=log_limit)
-//            log_index = 0;
-//        log_extend_count++;
-//        if(log_extend_count>=log_extend)
-//        {
-//            log_extend_count = 0;
-//            log_state = 2;
-//            dab_state = 0;
-//            Dab_Idc_inte = 0;
-//            dab_phs = 0;
-//        }
-//    }
-
-//
-//
-//    if((Vac > 400) || (Vac < -400) || (Iac > 15) || (Iac < -15) || (Vdc > 400))
-//    {
-//        Pwm_DIS();
-//        rect_state = 2;
-//        dab_state = 2;
-//    }
-//
-//    Vac_theta = MSST_PLL(Vac,&Vac_freq, &Vac_amp);
-//    Vdc_filter = voltage_sogi(Vdc, Vac_freq);
-//
-//    switch(rect_state)
-//    {
-//    case 0:
-//    {
-//        break;
-//    }
-//    case 1: {
-//        float mi = RectifierControl(Vac_theta, Vac_freq, Vac, Iac, Vdc, Vdc_filter);
-//        RectDuty_SET(mi);
-//        break;
-//    }
-//    case 2: {
-//        float mi = RectifierControl(Vac_theta, Vac_freq, Vac, Iac, Vdc, Vdc_filter);
-//        break;
-//    }
-//    default: break;
-//    }
-//
-//    switch(dab_state)
-//    {
-//    case 0: dab_pri_off();  break;
-//    case 1: dab_pri_ss();   break;
-//    case 2: dab_pri_on();   break;
-//    case 3: dab_pri_fault();break;
-//    default: break;
-//    }
-//
-
-
-
-//    float V_dc_ref = 400;
-
-//    V_dc_filtered = voltage_sogi(Vdc, freq_h1);
-
-
-//    Iac_ref = 5 * __cospuf32(theta_2);
-
-//    if(control_state == 1)
-//    {
-//        Iac_amp = voltage_loop(V_dc_ref, V_dc_filtered);
-//        Iac_ref = Iac_amp * __cospuf32(theta_2) + I_react * __sinpuf32(theta_2);
-//        Vac_ref = current_loop(Iac_ref, Iac, freq_h1);
-//    }
-//    else
-//    {
-//        Rectifier_DIS();
-//        Vac_ref = 0;
-//        ResetStateVariables();
-//    }
-//
-//    float duty = Vac_ref / Vdc;
-
-//    RectDuty_SET(duty);
-
-//    DataLogWr();
-
-//    Uint16 dac_value = 1000 * __cospuf32(theta_2) + 2048;
-//    DacaRegs.DACVALS.bit.DACVALS = dac_value;
-//
-    Dab_Update();
-    EPwm9Regs.CMPA.bit.CMPA = V_DC + 50;
+    if(Sec_En)
+        EPwm9Regs.CMPA.bit.CMPA = V_DC + 50;
+    else
+        EPwm9Regs.CMPA.bit.CMPA = 40;
 
 
     led_count++;
@@ -406,40 +220,74 @@ interrupt void ControlLoop(void)
         CPU_LED_TOGGLE = 1;
     }
 
-
-    pwm_counter = (int16)(EPwm1Regs.TBCTR);
-
     AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;	//Clear ADCINT1 flag reinitialize for next SOC
 	PieCtrlRegs.PIEACK.bit.ACK1 = 1;
 }
 
+Uint16 initial_count = 10;
 
-
-void dab_pri_off()
+void pri_inital()
 {
-    EPwm9Regs.CMPA.bit.CMPA = 20;
+    Pwm_DIS();
+    Sec_En = 0;
+    if(initial_count > 0)
+        initial_count--;
+    else
+        State = STATE_STAND_BY;
 }
 
-void dab_pri_ss()
+float dab_ss_db = 1980;
+
+void standby()
 {
-    if(dab_duty < 985)
+    Pwm_DIS();
+    Sec_En = 0;
+
+    if(Duty < 50)
     {
-        dab_duty++;
-        EPwm7Regs.CMPA.bit.CMPA = dab_duty;
-        EPwm7Regs.CMPB.bit.CMPB = 2000 - dab_duty;
-        EPwm8Regs.CMPA.bit.CMPA = dab_duty;
-        EPwm8Regs.CMPB.bit.CMPB = 2000 - dab_duty;
+        State = STATE_STAND_BY;
     }
     else
-        dab_pri_state = 2;
+    {
+        dab_ss_db = 1980;
+        DabPri_EN();
+        State = STATE_DAB_SS;
+    }
 }
 
-void dab_pri_on()
+void dab_ss()
 {
-    EPwm9Regs.CMPA.bit.CMPA = V_DC + 50;
+    Uint16 dab_db = (Uint16)dab_ss_db - 1;
+    EPwm7Regs.DBRED.bit.DBRED = dab_db;
+    EPwm7Regs.DBFED.bit.DBFED = dab_db;
+    EPwm8Regs.DBRED.bit.DBRED = dab_db;
+    EPwm8Regs.DBFED.bit.DBFED = dab_db;
+    dab_ss_db -= 1;
+
+    if(dab_ss_db <= 40)
+    {
+        Sec_En = 1;
+        State = STATE_DAB_NORMAL;
+    }
+}
+void dab_normal()
+{
+    if(Duty > 100)
+    {
+        RectCmp_SET(Duty - 100);
+        Rectifier_EN();
+        State = STATE_RECT_NORMAL;
+    }
 }
 
-void dab_pri_fault()
+void rect_normal()
 {
-    EPwm9Regs.CMPA.bit.CMPA = 10;
+    RectCmp_SET(Duty - 100);
 }
+
+void protection()
+{
+    Pwm_DIS();
+    Sec_En = 0;
+}
+

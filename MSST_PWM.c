@@ -8,6 +8,7 @@
 #include "F28x_Project.h"
 
 #define PWM_PRD     2000
+#define PWM_DB_INIT 1980
 #define PWM_DB      40
 
 #define DAB_PRD     2000
@@ -25,7 +26,7 @@ void Epwm1Init()
     EPwm1Regs.TBCTL.bit.PHSEN = 1; // Enable phase shift
     EPwm1Regs.TBCTL.bit.HSPCLKDIV = 0; // TBCLK = EPWMCLK / (HSPCLKDIV x CLKDIV)
 
-    EPwm1Regs.TBCTL.bit.CTRMODE = 2;
+//    EPwm1Regs.TBCTL.bit.CTRMODE = 2;
 
     EPwm1Regs.ETSEL.bit.SOCASEL = 1; // SOCA at counter equals to 0
     EPwm1Regs.ETSEL.bit.SOCAEN = 1;  // Enable SOCA
@@ -34,7 +35,7 @@ void Epwm1Init()
 
 void Epwm2Init()
 {
-    EPwm2Regs.TBPRD = PWM_PRD-1;
+    EPwm2Regs.TBPRD = 3999;
 
     EPwm2Regs.TBCTL.bit.SYNCOSEL = 0; // Sync when TBCTR = 0
     EPwm2Regs.TBCTL.bit.PHSEN = 1; // Enable phase shift
@@ -46,21 +47,22 @@ void Epwm2Init()
     EPwm2Regs.DBFED.bit.DBFED = PWM_DB-1;
     EPwm2Regs.DBCTL.bit.IN_MODE = 0;
     EPwm2Regs.DBCTL.bit.POLSEL = 2;
-    EPwm2Regs.DBCTL.bit.OUT_MODE = 3;
 
     EPwm2Regs.CMPA.bit.CMPA = 2000;
 
-    EPwm2Regs.TBCTL.bit.CTRMODE = 0; // Count-up mode, start the counter
+//    EPwm2Regs.TBCTL.bit.CTRMODE = 0; // Count-up mode, start the counter
 
     EALLOW;
     EPwm2Regs.TZCTL.bit.TZA = TZ_FORCE_LO;
     EPwm2Regs.TZCTL.bit.TZB = TZ_FORCE_LO;
+    EPwm2Regs.TZFRC.bit.OST = 1;
     EDIS;
+    EPwm2Regs.DBCTL.bit.OUT_MODE = 3;
 }
 
 void Epwm6Init()
 {
-    EPwm6Regs.TBPRD = PWM_PRD-1;
+    EPwm6Regs.TBPRD = 3999;
 
     EPwm6Regs.TBCTL.bit.SYNCOSEL = 0; // Sync when TBCTR = 0
     EPwm6Regs.TBCTL.bit.PHSEN = 1; // Enable phase shift
@@ -72,18 +74,19 @@ void Epwm6Init()
     EPwm6Regs.DBFED.bit.DBFED = PWM_DB-1;
     EPwm6Regs.DBCTL.bit.IN_MODE = 0;
     EPwm6Regs.DBCTL.bit.POLSEL = 2;
-    EPwm6Regs.DBCTL.bit.OUT_MODE = 3;
     EPwm6Regs.DBCTL.bit.OUTSWAP = 3;
 
     EPwm6Regs.CMPA.bit.CMPA = 2000;
 
-    EPwm6Regs.TBCTL.bit.CTRMODE = 0; // Count-up mode, start the counter
+//    EPwm6Regs.TBCTL.bit.CTRMODE = 0; // Count-up mode, start the counter
 
 
     EALLOW;
     EPwm6Regs.TZCTL.bit.TZA = TZ_FORCE_LO;
     EPwm6Regs.TZCTL.bit.TZB = TZ_FORCE_LO;
+    EPwm6Regs.TZFRC.bit.OST = 1;
     EDIS;
+    EPwm6Regs.DBCTL.bit.OUT_MODE = 3;
 }
 
 void Epwm7Init()
@@ -97,20 +100,21 @@ void Epwm7Init()
     EPwm7Regs.AQCTLA.bit.CAU = 2; // Clear output A at TBCTR = CMPA
     EPwm7Regs.AQCTLA.bit.CAD = 1; // Set output A at TBCTR = 0
 
-    EPwm7Regs.DBRED.bit.DBRED = PWM_DB-1;
-    EPwm7Regs.DBFED.bit.DBFED = PWM_DB-1;
+    EPwm7Regs.DBRED.bit.DBRED = PWM_DB_INIT-1;
+    EPwm7Regs.DBFED.bit.DBFED = PWM_DB_INIT-1;
     EPwm7Regs.DBCTL.bit.IN_MODE = 0;
     EPwm7Regs.DBCTL.bit.POLSEL = 2;
-    EPwm7Regs.DBCTL.bit.OUT_MODE = 3;
 
     EPwm7Regs.CMPA.bit.CMPA = 1000;
 
-    EPwm7Regs.TBCTL.bit.CTRMODE = 2; // Count-up mode, start the counter
+//    EPwm7Regs.TBCTL.bit.CTRMODE = 2; // Count-up mode, start the counter
 
     EALLOW;
     EPwm7Regs.TZCTL.bit.TZA = TZ_FORCE_LO;
     EPwm7Regs.TZCTL.bit.TZB = TZ_FORCE_LO;
+    EPwm7Regs.TZFRC.bit.OST = 1;
     EDIS;
+    EPwm7Regs.DBCTL.bit.OUT_MODE = 3;
 }
 
 void Epwm8Init()
@@ -124,21 +128,22 @@ void Epwm8Init()
     EPwm8Regs.AQCTLA.bit.CAU = 2; // Clear output A at TBCTR = CMPA
     EPwm8Regs.AQCTLA.bit.CAD = 1; // Set output A at TBCTR = 0
 
-    EPwm8Regs.DBRED.bit.DBRED = PWM_DB-1;
-    EPwm8Regs.DBFED.bit.DBFED = PWM_DB-1;
+    EPwm8Regs.DBRED.bit.DBRED = PWM_DB_INIT-1;
+    EPwm8Regs.DBFED.bit.DBFED = PWM_DB_INIT-1;
     EPwm8Regs.DBCTL.bit.IN_MODE = 0;
     EPwm8Regs.DBCTL.bit.POLSEL = 2;
-    EPwm8Regs.DBCTL.bit.OUT_MODE = 3;
     EPwm8Regs.DBCTL.bit.OUTSWAP = 3;
 
     EPwm8Regs.CMPA.bit.CMPA = 1000;
 
-    EPwm8Regs.TBCTL.bit.CTRMODE = 2; // Up-down count mode, start the counter
+//    EPwm8Regs.TBCTL.bit.CTRMODE = 2; // Up-down count mode, start the counter
 
     EALLOW;
     EPwm8Regs.TZCTL.bit.TZA = TZ_FORCE_LO;
     EPwm8Regs.TZCTL.bit.TZB = TZ_FORCE_LO;
+    EPwm8Regs.TZFRC.bit.OST = 1;
     EDIS;
+    EPwm8Regs.DBCTL.bit.OUT_MODE = 3;
 }
 
 void Epwm9Init()
@@ -156,17 +161,17 @@ void Epwm9Init()
     EPwm9Regs.DBFED.bit.DBFED = 0;
     EPwm9Regs.DBCTL.bit.IN_MODE = 0;
     EPwm9Regs.DBCTL.bit.POLSEL = 2;
-    EPwm9Regs.DBCTL.bit.OUT_MODE = 3;
 
     EPwm9Regs.CMPA.bit.CMPA = 30;
     EPwm9Regs.TBPHS.bit.TBPHS = DAB_OFFSET;
 
-    EPwm9Regs.TBCTL.bit.CTRMODE = 0; // Up-down count mode, start the counter
+//    EPwm9Regs.TBCTL.bit.CTRMODE = 0; // Up-down count mode, start the counter
 
     EALLOW;
     EPwm9Regs.TZCTL.bit.TZA = TZ_FORCE_LO;
     EPwm9Regs.TZCTL.bit.TZB = TZ_FORCE_LO;
     EDIS;
+    EPwm9Regs.DBCTL.bit.OUT_MODE = 3;
 }
 
 
@@ -195,6 +200,13 @@ void PwmInit()
     Epwm7Init();
     Epwm8Init();
     Epwm9Init();
+
+    EPwm1Regs.TBCTL.bit.CTRMODE = 2;
+    EPwm2Regs.TBCTL.bit.CTRMODE = 0;
+    EPwm6Regs.TBCTL.bit.CTRMODE = 0;
+    EPwm7Regs.TBCTL.bit.CTRMODE = 2;
+    EPwm8Regs.TBCTL.bit.CTRMODE = 2;
+    EPwm9Regs.TBCTL.bit.CTRMODE = 0;
 
 }
 
@@ -261,62 +273,13 @@ void RectDuty_SET(float duty)
     EPwm6Regs.CMPA.bit.CMPA = cmp_value;
 }
 
-
-void DabFreq_INC()
+void RectCmp_SET(Uint16 cmp)
 {
-    if(dab_prd > 1000)
-        dab_prd-=10;
+    if(cmp > 3500)
+        cmp = 3500;
+    if(cmp < 500)
+        cmp = 500;
+    EPwm2Regs.CMPA.bit.CMPA = cmp;
+    EPwm6Regs.CMPA.bit.CMPA = cmp;
 }
 
-void DabFreq_DEC()
-{
-    if(dab_prd < 10000)
-        dab_prd+=10;
-}
-
-void DabPhs_INC()
-{
-    if(dab_phs > -1000)
-        dab_phs--;
-}
-
-void DabPhs_DEC()
-{
-    if(dab_phs < 1000)
-        dab_phs++;
-}
-
-extern Uint16 log_state;
-extern Uint16 dab_state;
-extern float Dab_Idc_ref;
-extern float Dab_Idc_buf;
-void DabPhs_SET(int16 arg)
-{
-    if((dab_phs > -1000) && (dab_phs < 1000))
-    {
-        dab_phs = arg;
-        log_state = 1;
-        dab_state = 1;
-        Dab_Idc_ref = Dab_Idc_buf;
-    }
-}
-
-void Dab_Update()
-{
-    EPwm1Regs.TBPRD = dab_prd;
-    EPwm7Regs.TBPRD = dab_prd;
-    EPwm8Regs.TBPRD = dab_prd;
-    EPwm9Regs.TBPRD = (dab_prd << 1) - 1;
-
-    Uint16 cmp = dab_prd >> 1;
-
-    EPwm7Regs.CMPA.bit.CMPA = cmp;
-    EPwm8Regs.CMPA.bit.CMPA = cmp;
-
-//    int16 phs = dab_phs + DAB_OFFSET;
-//
-//    if(phs >= 0)
-//        EPwm9Regs.TBPHS.bit.TBPHS = phs;
-//    else
-//        EPwm9Regs.TBPHS.bit.TBPHS = (Uint16)((int16)dab_prd + phs);
-}
