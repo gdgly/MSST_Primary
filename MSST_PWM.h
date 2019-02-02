@@ -16,7 +16,7 @@ extern void Pwm_DIS();
 extern void Rectifier_EN();
 extern void Rectifier_DIS();
 extern void RectDuty_SET(float duty);
-extern void RectCmp_SET(Uint16 cmp);
+extern void RectCmp_SET(Uint16 vac_ref_duty, float Vdc);
 
 extern void DabPri_EN();
 extern void DabPri_DIS();

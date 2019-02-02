@@ -278,7 +278,7 @@ void dab_normal()
 {
     if(Duty > 100)
     {
-        RectCmp_SET(Duty - 100);
+        RectCmp_SET(Duty - 100, Vdc);
         Rectifier_EN();
         State = STATE_RECT_NORMAL;
     }
@@ -286,7 +286,13 @@ void dab_normal()
 
 void rect_normal()
 {
-    RectCmp_SET(Duty - 100);
+    if(Duty < 100)
+    {
+        Rectifier_DIS();
+        State = STATE_DAB_NORMAL;
+    }
+    else
+        RectCmp_SET(Duty - 100, Vdc);
 }
 
 void protection()

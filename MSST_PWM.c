@@ -273,13 +273,19 @@ void RectDuty_SET(float duty)
     EPwm6Regs.CMPA.bit.CMPA = cmp_value;
 }
 
-void RectCmp_SET(Uint16 cmp)
+void RectCmp_SET(Uint16 vac_ref_duty, float Vdc)
 {
-    if(cmp > 3500)
-        cmp = 3500;
-    if(cmp < 500)
-        cmp = 500;
-    EPwm2Regs.CMPA.bit.CMPA = cmp;
-    EPwm6Regs.CMPA.bit.CMPA = cmp;
+    float Vac_ref = ((float)vac_ref_duty - 2000) / 3;
+    float duty = Vac_ref / Vdc;
+
+    RectDuty_SET(duty);
+
+
+//    if(cmp > 3850)
+//        cmp = 3850;
+//    if(cmp < 150)
+//        cmp = 150;
+//    EPwm2Regs.CMPA.bit.CMPA = cmp;
+//    EPwm6Regs.CMPA.bit.CMPA = cmp;
 }
 
