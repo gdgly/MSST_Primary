@@ -185,6 +185,7 @@ void ECapInit()
     ECap1Regs.ECCTL1.bit.CTRRST2 = 1;
     ECap1Regs.ECCTL1.bit.CAP1POL = 1;
     ECap1Regs.ECCTL2.bit.TSCTRSTOP = 1;
+    ECap1Regs.ECCTL2.bit.STOP_WRAP = 1; // Only use Event 0 and Event 1
     EDIS;
 }
 

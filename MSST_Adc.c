@@ -127,7 +127,6 @@ void Adc_B_Init()
 Uint16 Prd = 0;
 Uint16 Duty = 0;
 float Iac = 0;
-float I_ac_offset = 50.9928255516;
 float Vdc = 0;
 float Idc = 0;
 
@@ -175,13 +174,26 @@ __interrupt void ControlLoop(void)
     TEMP_3 = AdcaResultRegs.ADCRESULT2;
     TEMP_4 = AdcaResultRegs.ADCRESULT3;
 
-    Prd = (ECap1Regs.CAP2 + ECap1Regs.CAP4) >> 1;
-    Duty = (ECap1Regs.CAP1 + ECap1Regs.CAP3) >> 1;
-    Iac = -0.0247676798 * I_AC_1 + I_ac_offset;
-    Vdc = 0.2965626611 * V_DC + 0.0219840284;
-    Idc = -0.0076936010 * I_DC_2 + 15.3691515548;
+//    Prd = (ECap1Regs.CAP2 + ECap1Regs.CAP4) >> 1;
+//    Duty = (ECap1Regs.CAP1 + ECap1Regs.CAP3) >> 1;
 
-    if((State > 0) && ((Iac < -15)||(Iac > 15)))
+    Prd = ECap1Regs.CAP2;
+    Duty = ECap1Regs.CAP1;
+
+    //L1_PRI
+//    Iac = -0.0247676798 * I_AC_1 + 50.9928255516;
+//    Vdc = 0.2965626611 * V_DC + 0.0219840284;
+//    Idc = -0.0076936010 * I_DC_2 + 15.3691515548;
+    //L2_PRI
+//    Iac = -0.0251623542 * I_AC_1 + 51.7725114882;
+//    Vdc = 0.2957846495 * V_DC + 0.0991538386;
+//    Idc = -0.0075518652 * I_DC_2 + 15.5879212050;
+    //L3_PRI
+    Iac = -0.0253515732 * I_AC_1 + 52.1520863497;
+    Vdc = 0.2951300112 * V_DC - 0.5734058197;
+    Idc = -0.0075472619 * I_DC_2 + 15.3301725408;
+
+    if((State > 0) && ((Iac < -20)||(Iac > 20)))
         Status |= (1 << 1);
 
     if((State > 0) && (Vdc > 900))
