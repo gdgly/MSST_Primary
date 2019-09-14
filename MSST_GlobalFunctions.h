@@ -10,11 +10,11 @@
 
 #include "F2837xS_Device.h"
 
-#define CPU_LED_BIT GpioDataRegs.GPCDAT.bit.GPIO70
-#define CPU_LED_TOGGLE GpioDataRegs.GPCTOGGLE.bit.GPIO70
-//
-//#define CPU_LED_BIT GpioDataRegs.GPBDAT.bit.GPIO41
-//#define CPU_LED_TOGGLE GpioDataRegs.GPBTOGGLE.bit.GPIO41
+//#define CPU_LED_BIT GpioDataRegs.GPCDAT.bit.GPIO70
+//#define CPU_LED_TOGGLE GpioDataRegs.GPCTOGGLE.bit.GPIO70
+
+#define CPU_LED_BIT GpioDataRegs.GPBDAT.bit.GPIO41
+#define CPU_LED_TOGGLE GpioDataRegs.GPBTOGGLE.bit.GPIO41
 
 extern void MSSTGpioConfig(void);
 
